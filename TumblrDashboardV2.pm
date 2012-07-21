@@ -62,7 +62,7 @@ use feature qw( say );
 
 		my %option = %{$self->{option}};
 		my $url = 'http://api.tumblr.com/v2/user/dashboard/';		
-		say $url;
+#		say $url;
 
 
 		use Net::OAuth;
@@ -83,9 +83,9 @@ use feature qw( say );
 
 		$oauth_request->sign;
 		if ($oauth_request->verify){
-			say 'request success';
+			say 'make request';
 		}else{
-			say 'requesr failed';
+			say 'cannot make request';
 		}
 
 		my $dashboard = LWP::UserAgent->new;
@@ -95,10 +95,21 @@ use feature qw( say );
 		say 'get contents';
 
 		if ( $result->is_success ){
+			say 'reques is succeeded';
 			my $r = decode_json($result->content);
-			return $self->{content_data} = $r;
+				my $var_id = $r->{response}->{posts}->[0]->{id} || undef;
+				if ( defined($var_id)){
+					say "defined $var_id";
+					$self->{err} = 0;
+					return $self->{content_data} = $r;
+				}else{
+					say 'not defined var_id';
+					$self->{err} = 1;
+					return $self->{content_data} = undef;
+				}
 		}else{
 			say 'request is failed';
+			$self->{err} = 1;
 			return $self->{content_data} = undef;
 		}
 	}
@@ -106,22 +117,22 @@ use feature qw( say );
 	sub get_hash {
 		my $self = shift;
 		my $content_data;
+
 		if ($self->{content_data} ){
 			$content_data = $self->{content_data};
-		}
-		else{
+		}else{
 			$content_data = $self->get();
 		}
+
 		unless (exists $content_data->{response}->{posts}) {
 			print "no contents data\n";
 			return $self->{err} = 1;
 		}
-		for my $post ($content_data->{response}) {
-			while( my ($keys, $values)= each $post->{posts}){
-				while (my ($keys2, $values2) = each $values) {
-				$self->{posts}->{$keys}->{$keys2} = $values2;
- 				}
-			}
+
+		for my $post ($content_data->{response}->{posts}) {
+			while( my ($keys, $values)= each $post){
+				$self->{posts}->[$keys] = $values;
+ 			}
 		}
 		$self->{err} = 0;
 		return $self->{posts};
