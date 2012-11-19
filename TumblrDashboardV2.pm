@@ -95,7 +95,7 @@ use feature qw( say );
 		say 'get contents';
 
 		if ( $result->is_success ){
-			say 'reques is succeeded';
+			say 'request is succeeded';
 			my $r = decode_json($result->content);
 				my $var_id = $r->{response}->{posts}->[0]->{id} || undef;
 				if ( defined($var_id)){
